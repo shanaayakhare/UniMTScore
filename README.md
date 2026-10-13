@@ -15,4 +15,4 @@ MuLya is a research prototype designed to explore machine translation evaluation
 - Export evaluation results as CSV
 
 ## Running the Prototype
-Open the Demo Folder and then open `Index.html` in a modern web browser. An internet connection is required for the external spreadsheet library used for supported spreadsheet imports.
+Open `index.html` in a modern web browser. An internet connection is required for the external spreadsheet library used for supported spreadsheet imports.
