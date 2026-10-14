@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>मूल्य (MuL) – Basic Prototype</title>
+<title>मूल्य (MuLya) – Basic Prototype</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f5f6;--surf:#fff;--ink:#14232b;--mut:#5d6f78;--line:#cfd9dd;--acc:#1f6f8b}
 :root[data-theme="dark"]{--bg:#0e1a20;--surf:#15262e;--ink:#e6eef1;--mut:#8fa5af;--line:#28404a;--acc:#5db5d1}
@@ -57,7 +57,7 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
 </head>
 <body>
 <div class="wrap">
-<h1>मूल्य (MuL)</h1>
+<h1>मूल्य (MuLya)</h1>
 <p class="sub">Multidimensional Unified Linguistic Assessment: basic prototype</p>
 
 <nav role="tablist" id="tabs">
@@ -81,9 +81,9 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
  </div>
  <div>
   <div class="card">
-   <h2>MuL score</h2>
-   <p class="score" id="mul">0.000</p>
-   <p class="note">MuL = α·LEX + β·SYN + γ·SEM, on a 0 to 1 scale.</p>
+   <h2>MuLya score</h2>
+   <p class="score" id="mulya">0.000</p>
+   <p class="note">MuLya = α·LEX + β·SYN + γ·SEM, on a 0 to 1 scale.</p>
   </div>
   <div class="card">
    <h2>Weights</h2>
@@ -94,18 +94,18 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
     <div><label for="wb">β (SYN)</label><input id="wb" type="number" step=".05" min="0"></div>
     <div><label for="wg">γ (SEM)</label><input id="wg" type="number" step=".05" min="0"></div>
    </div>
-   <label>LEX: BLEU, chrF++, METEOR (Notebook 03)</label>
+   <label>LEX: BLEU, chrF++, METEOR </label>
    <div class="row">
     <div><input id="w_bleu" type="number" step=".05" min="0" aria-label="BLEU weight"></div>
     <div><input id="w_chrf" type="number" step=".05" min="0" aria-label="chrF++ weight"></div>
     <div><input id="w_met" type="number" step=".05" min="0" aria-label="METEOR weight"></div>
    </div>
-   <label>SYN: POS similarity, Dependency similarity (Notebook 04)</label>
+   <label>SYN: POS similarity, Dependency similarity </label>
    <div class="row">
     <div><input id="w_pos" type="number" step=".05" min="0" aria-label="POS weight"></div>
     <div><input id="w_dep" type="number" step=".05" min="0" aria-label="Dependency weight"></div>
    </div>
-   <label>SEM: BERTScore F1 (Notebook 05), COMET</label>
+   <label>SEM: BERTScore F1 , COMET</label>
    <div class="row">
     <div><input id="w_bert" type="number" step=".05" min="0" aria-label="BERTScore weight"></div>
     <div><input id="w_comet" type="number" step=".05" min="0" aria-label="COMET weight"></div>
@@ -143,7 +143,7 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
   <div class="btns"><button class="btn" id="upgo">Score dataset</button><button class="btn alt" id="updl" disabled>Download results as CSV</button></div>
   <div class="prog"><i id="upbar"></i></div>
   <div id="upavg" class="hide" style="border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0">
-   <span class="note">Average MuL score of the entire dataset</span>
+   <span class="note">Average MuLya score of the entire dataset</span>
    <p class="score" id="upavgv" style="font-size:48px;margin:2px 0">0.000</p>
    <span class="note" id="upavgn"></span>
   </div>
@@ -176,7 +176,7 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 /* =====================================================================
-   MuL ENGINE — follows Notebooks 03 (METEOR), 04 (POS + dependency), 05 (BERTScore)
+   MuLya ENGINE — follows Notebooks 03 (METEOR), 04 (POS + dependency), 05 (BERTScore)
    ===================================================================== */
 const clamp=x=>Math.max(0,Math.min(1,x));
 
@@ -408,7 +408,7 @@ const DATA={
 const dirs=[];LANG.forEach(l=>dirs.push(['English',l]));LANG.forEach(l=>dirs.push([l,'English']));
 function pair(i){const d=dirs[i];return DATA[d[0]].map((s,k)=>({src:s[0],ref:DATA[d[1]][k][0],mt:DATA[d[1]][k][1]}))}
 
-/* weights + fusion (min-max normalisation, Section on normalisation in the MuL document) */
+/* weights + fusion (min-max normalisation, Section on normalisation in the MuLya document) */
 const g=id=>Math.max(0,+$(id).value||0);
 function weights(){return{a:g('#wa'),b:g('#wb'),g:g('#wg'),bleu:g('#w_bleu'),chrf:g('#w_chrf'),met:g('#w_met'),pos:g('#w_pos'),dep:g('#w_dep'),bert:g('#w_bert'),comet:g('#w_comet')}}
 function norm(x,k){const lo=+$('#nmin_'+k).value,hi=+$('#nmax_'+k).value;return hi>lo?clamp((x-lo)/(hi-lo)):clamp(x)}
@@ -455,12 +455,12 @@ async function saveCsv(name,text){
 const humNum=v=>{if(v===''||v==null)return NaN;const n=+String(v).replace(',','.');return Number.isFinite(n)?n:NaN};
 const numVal=v=>{if(v===''||v==null)return NaN;const n=Number(String(v).trim());return Number.isFinite(n)?n:NaN};
 const f4=v=>Number.isFinite(v)?v.toFixed(4):'';
-const CSVH='source,reference,translation,human,LEX,SYN,SEM,MuL,BLEU,chrF++,METEOR,POS_similarity,Dependency_similarity,BERTScore_F1,COMET';
+const CSVH='source,reference,translation,human,LEX,SYN,SEM,MuLya,BLEU,chrF++,METEOR,POS_similarity,Dependency_similarity,BERTScore_F1,COMET';
 
 /* ---------- batch table ---------- */
 let brows=[];
 const newRow=o=>Object.assign({src:'',ref:'',mt:'',h:'',res:null,c:null},o||{});
-const BH='<tr><th>#</th><th>Source</th><th>Reference</th><th>Translation</th><th>Human (0–1)</th><th>LEX</th><th>SYN</th><th>SEM</th><th>MuL</th><th></th></tr>';
+const BH='<tr><th>#</th><th>Source</th><th>Reference</th><th>Translation</th><th>Human (0–1)</th><th>LEX</th><th>SYN</th><th>SEM</th><th>MuLya</th><th></th></tr>';
 function resCells(i){const r=brows[i].res;return [0,1,2,3].map(k=>`<td class="num" id="r${i}_${k}">${r?(k==3?'<b>'+fx(r[k])+'</b>':fx(r[k])):'—'}</td>`).join('')}
 function badH(v){const n=humNum(v);return v!==''&&(isNaN(n)||n<0||n>1)}
 function renderBatch(){
@@ -555,7 +555,7 @@ async function scoreUpload(){
  const ok=[];res.forEach((r,i)=>{if(r&&Number.isFinite(r[3]))ok.push(i)});
  const m=k=>{const v=ok.map(i=>res[i][k]).filter(Number.isFinite);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(3):'n/a'};
  $('#upsum').innerHTML=`Scored <b>${ok.length.toLocaleString()}</b> of ${n.toLocaleString()} rows${skipped?` (${skipped.toLocaleString()} skipped: empty reference or translation)`:''}. Average LEX ${m(0)} · SYN ${m(1)} · SEM ${m(2)}.`;
- $('#upavg').classList.toggle('hide',!ok.length);$('#upavgv').textContent=m(3);$('#upavgn').textContent=`Mean of the per-sentence MuL scores over ${ok.length.toLocaleString()} scored sentences.`;
+ $('#upavg').classList.toggle('hide',!ok.length);$('#upavgv').textContent=m(3);$('#upavgn').textContent=`Mean of the per-sentence MuLya scores over ${ok.length.toLocaleString()} scored sentences.`;
  if(ci.h>=0){const x=[],H=[];ok.forEach(i=>{const hv=humNum(UP.rows[i][ci.h]);if(!isNaN(hv)){x.push(res[i][3]);H.push(hv)}});$('#upcor').innerHTML=corrHTML(x,H)}else $('#upcor').innerHTML='';
  $('#uptbl').innerHTML='<tr><th>#</th>'+(ci.src>=0?'<th>Source</th>':'')+'<th>Reference</th><th>Translation</th>'+(ci.h>=0?'<th>Human</th>':'')+'<th>LEX</th><th>SYN</th><th>SEM</th><th>MuL</th></tr>'+
   ok.slice(0,20).map(i=>{const r=UP.rows[i],s=res[i];return `<tr><td>${i+1}</td>${ci.src>=0?`<td>${esc(r[ci.src])}</td>`:''}<td>${esc(r[ci.ref])}</td><td>${esc(r[ci.mt])}</td>${ci.h>=0?`<td class="num">${esc(r[ci.h])}</td>`:''}<td class="num">${fx(s[0])}</td><td class="num">${fx(s[1])}</td><td class="num">${fx(s[2])}</td><td class="num"><b>${fx(s[3])}</b></td></tr>`}).join('')+
