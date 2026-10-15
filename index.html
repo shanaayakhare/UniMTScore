@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>मूल्य (Mulya) – Basic Prototype</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f5f6;--surf:#fff;--ink:#14232b;--mut:#5d6f78;--line:#cfd9dd;--acc:#1f6f8b}
+:root[data-theme="dark"]{--bg:#0e1a20;--surf:#15262e;--ink:#e6eef1;--mut:#8fa5af;--line:#28404a;--acc:#5db5d1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a20;--surf:#15262e;--ink:#e6eef1;--mut:#8fa5af;--line:#28404a;--acc:#5db5d1}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 40px}
+h1{margin:0 0 4px;font-size:26px}
+.sub{color:var(--mut);margin:0 0 16px}
+nav{display:flex;gap:6px;margin-bottom:14px}
+nav button{font:inherit;padding:8px 14px;border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:6px;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 8px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+textarea,select,input[type=number]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px}
+textarea{min-height:56px;resize:vertical}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{font:inherit;padding:7px 12px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.row>div{flex:1;min-width:90px}
+.score{font-size:64px;font-weight:700;line-height:1;margin:6px 0}
+.note{font-size:13px;color:var(--mut)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;color:var(--mut);font-weight:500;padding:4px 6px}
+.tbl td{padding:4px 6px;border-top:1px solid var(--line);vertical-align:top}
+.tbl textarea{min-width:170px;min-height:44px;padding:5px;font-size:13.5px}
+.tbl input.h{width:84px;padding:5px}
+.tbl input.nb{width:78px;padding:4px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.cor{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.cor div{border:1px solid var(--line);border-radius:6px;padding:6px 12px}
+.cor b{display:block;font-size:22px}
+.hide{display:none}
+.mfrow{margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:8px}
+.mfrow select{margin-top:6px}
+.warn{font-size:13px;color:#b45309;margin:4px 0 0}
+:root[data-theme="dark"] .warn{color:#f0b33a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{color:#f0b33a}}
+.bad{border-color:#c2410c!important;background:rgba(194,65,12,.12)!important}
+.prog{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:5px;overflow:hidden;margin:8px 0}
+.prog i{display:block;height:100%;width:0;background:var(--acc)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+details{margin-top:10px}summary{cursor:pointer;font-size:14px}
+.how{font-size:13px;color:var(--mut);margin:6px 0 0}.how b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>मूल्य (Mulya)</h1>
+<p class="sub">Multidimensional Unified Linguistic Assessment: basic prototype</p>
+
+<nav role="tablist" id="tabs">
+  <button role="tab" data-t="eval" aria-selected="true">Evaluate a sentence</button>
+  <button role="tab" data-t="batch" aria-selected="false">Batch &amp; human correlation</button>
+</nav>
+
+<section id="p-eval">
+<div class="grid">
+ <div>
+  <div class="card">
+   <h2>Translation input</h2>
+   <label for="dir">Direction</label><select id="dir"></select>
+   <label for="src" id="lsrc">Source sentence</label><textarea id="src" lang="en"></textarea>
+   <p class="warn" id="wsrc"></p>
+   <label for="ref" id="lref">Reference translation</label><textarea id="ref"></textarea>
+   <p class="warn" id="wref"></p>
+   <label for="mt" id="lmt">Machine translation</label><textarea id="mt"></textarea>
+   <p class="warn" id="wmt"></p>
+  </div>
+ </div>
+ <div>
+  <div class="card">
+   <h2>Mulya score</h2>
+   <p class="score" id="mul">0.000</p>
+   <p class="note">Mulya = α·LEX + β·SYN + γ·SEM, on a 0 to 1 scale.</p>
+  </div>
+  <div class="card">
+   <h2>Weights</h2>
+   <button class="btn alt" id="reset">Reset to default</button>
+   <p class="note">Weights are rescaled to sum to 1 within each group.</p>
+   <div class="row">
+    <div><label for="wa">α (LEX)</label><input id="wa" type="number" step=".05" min="0"></div>
+    <div><label for="wb">β (SYN)</label><input id="wb" type="number" step=".05" min="0"></div>
+    <div><label for="wg">γ (SEM)</label><input id="wg" type="number" step=".05" min="0"></div>
+   </div>
+   <label>LEX: BLEU, chrF++, METEOR (Notebook 03)</label>
+   <div class="row">
+    <div><input id="w_bleu" type="number" step=".05" min="0" aria-label="BLEU weight"></div>
+    <div><input id="w_chrf" type="number" step=".05" min="0" aria-label="chrF++ weight"></div>
+    <div><input id="w_met" type="number" step=".05" min="0" aria-label="METEOR weight"></div>
+   </div>
+   <label>SYN: POS similarity, Dependency similarity (Notebook 04)</label>
+   <div class="row">
+    <div><input id="w_pos" type="number" step=".05" min="0" aria-label="POS weight"></div>
+    <div><input id="w_dep" type="number" step=".05" min="0" aria-label="Dependency weight"></div>
+   </div>
+   <label>SEM: BERTScore F1 (Notebook 05), COMET</label>
+   <div class="row">
+    <div><input id="w_bert" type="number" step=".05" min="0" aria-label="BERTScore weight"></div>
+    <div><input id="w_comet" type="number" step=".05" min="0" aria-label="COMET weight"></div>
+   </div>
+   <p class="note">BERTScore F1 and COMET each carry a weight of 0.5 in SEM. In this page both are stand-ins unless an uploaded file supplies the real scores.</p>
+   <details><summary>Min–max normalization bounds</summary>
+    <p class="note">X′ = (X − min) / (max − min). The BERTScore minimum is the lowest value seen in Notebook 05 (0.6127). Freeze these from your development set.</p>
+    <div class="scroll"><table class="tbl" id="normtbl"></table></div>
+   </details>
+  </div>
+ </div>
+</div>
+<div class="card" id="upcard">
+ <h2>Upload a dataset</h2>
+ <p class="note">Score a whole file at once. Accepted formats: .csv, .tsv, .txt, .xlsx, .xls, .xlsm, .xlsb, .ods, .json, .jsonl. The first row must hold column names. Large files are scored in chunks so the page stays responsive. Everything runs in your browser and the file is not uploaded anywhere.</p>
+ <p class="note" style="margin-bottom:4px"><b>Option 1:</b> upload one combined file (source, reference, translation and optional human scores as columns)</p>
+ <input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl" aria-label="Dataset file">
+ <details id="multi" open>
+  <summary><b>Option 2:</b> upload separate files: source, reference, translation and human scores each in its own file</summary>
+  <p class="note">Rows are matched by position. Row 1 of the source file goes with row 1 of the reference file and row 1 of the translation file, so keep all files in the same order. Accepted formats are the same as above, and a .txt file is read as one sentence per line. Reference and translation files are required. The source and human score files are optional.</p>
+  <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="mf_hdr" checked> The first row of each file holds a column name</label>
+  <div class="mfrow"><label for="mf_src">Source file (optional)</label><input type="file" id="mf_src" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_src" class="hide" aria-label="Source column"></select><span class="note" id="mfs_src"></span></div>
+  <div class="mfrow"><label for="mf_ref">Reference file</label><input type="file" id="mf_ref" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_ref" class="hide" aria-label="Reference column"></select><span class="note" id="mfs_ref"></span></div>
+  <div class="mfrow"><label for="mf_mt">Translation (MT output) file</label><input type="file" id="mf_mt" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_mt" class="hide" aria-label="Translation column"></select><span class="note" id="mfs_mt"></span></div>
+  <div class="mfrow"><label for="mf_h">Human score file (optional)</label><input type="file" id="mf_h" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_h" class="hide" aria-label="Human score column"></select><span class="note" id="mfs_h"></span></div>
+  <p class="note" id="mf_stat"></p>
+ </details>
+ <p class="note" id="fstat"></p>
+ <div id="map" class="hide">
+  <div class="row">
+   <div><label for="c_src">Source column (optional)</label><select id="c_src"></select></div>
+   <div><label for="c_ref">Reference column</label><select id="c_ref"></select></div>
+   <div><label for="c_mt">Translation column</label><select id="c_mt"></select></div>
+   <div><label for="c_h">Human score column (optional)</label><select id="c_h"></select></div>
+  </div>
+  <div id="pre">
+  <p class="note" style="margin-top:12px">Scores already computed in your notebooks (optional). Where a column is chosen, its value is used. Otherwise the page computes that part itself.</p>
+  <div class="row">
+   <div><label for="p_bleu">BLEU</label><select id="p_bleu"></select></div>
+   <div><label for="p_chrf">chrF++</label><select id="p_chrf"></select></div>
+   <div><label for="p_met">METEOR (unified_meteor.csv)</label><select id="p_met"></select></div>
+   <div><label for="p_pos">POS similarity</label><select id="p_pos"></select></div>
+   <div><label for="p_dep">Dependency similarity</label><select id="p_dep"></select></div>
+   <div><label for="p_bert">BERTScore F1</label><select id="p_bert"></select></div>
+   <div><label for="p_comet">COMET</label><select id="p_comet"></select></div>
+  </div>
+  </div>
+  <div class="btns"><button class="btn" id="upgo">Score dataset</button><button class="btn alt" id="updl" disabled>Download results as CSV</button></div>
+  <div class="prog"><i id="upbar"></i></div>
+  <div id="upavg" class="hide" style="border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0">
+   <span class="note">Average Mulya score of the entire dataset</span>
+   <p class="score" id="upavgv" style="font-size:48px;margin:2px 0">0.000</p>
+   <span class="note" id="upavgn"></span>
+  </div>
+  <p class="note" id="upsum"></p>
+  <div class="cor" id="upcor"></div>
+  <div class="scroll"><table class="tbl" id="uptbl"></table></div>
+ </div>
+</div>
+</section>
+
+<section id="p-batch" class="hide">
+ <div class="card">
+  <h2>Score many sentences and compare with human judgments</h2>
+  <p class="note">Fill in the table in any language: source, reference, translation, and a human score from 0 to 1. Source and human score are optional. Rows with an empty reference or translation are skipped. Uses the weights from the first tab.</p>
+  <div class="btns">
+   <button class="btn alt" id="addrow">Add row</button>
+   <button class="btn alt" id="fill">Fill sample rows</button>
+   <button class="btn alt" id="clear">Clear table</button>
+   <button class="btn" id="run">Score table</button>
+   <button class="btn alt" id="dl">Download results as CSV</button>
+  </div>
+  <p class="note">Sample rows use the direction chosen on the Evaluate tab. You can type any language pair in the table.</p>
+  <div class="cor" id="cor"></div>
+  <div class="scroll"><table class="tbl" id="btbl"></table></div>
+ </div>
+</section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+/* =====================================================================
+   Mulya ENGINE — follows Notebooks 03 (METEOR), 04 (POS + dependency), 05 (BERTScore)
+   ===================================================================== */
+const clamp=x=>Math.max(0,Math.min(1,x));
+
+/* ---------- LEXICAL: METEOR, as NLTK meteor_score (alpha .9, beta 3, gamma .5) ----------
+   Notebook 03: meteor_score([reference.split()], translation.split())
+   exact match -> Porter-stem match. (The WordNet synonym stage needs the WordNet corpus and is not available here.) */
+function porterStem(w){
+ if(w.length<3)return w;
+ const c='[^aeiou]',v='[aeiouy]',C=c+'[^aeiouy]*',V=v+'[aeiou]*';
+ const mgr0='^('+C+')?'+V+C,meq1='^('+C+')?'+V+C+'('+V+')?$',mgr1='^('+C+')?'+V+C+V+C,sv='^('+C+')?'+v;
+ const s2={ational:'ate',tional:'tion',enci:'ence',anci:'ance',izer:'ize',bli:'ble',alli:'al',entli:'ent',eli:'e',ousli:'ous',ization:'ize',ation:'ate',ator:'ate',alism:'al',iveness:'ive',fulness:'ful',ousness:'ous',aliti:'al',iviti:'ive',biliti:'ble',logi:'log'};
+ const s3={icate:'ic',ative:'',alize:'al',iciti:'ic',ical:'ic',ful:'',ness:''};
+ let stem,suffix,re,re2,re3,re4,fp;const first=w[0];w=w.toLowerCase();
+ if(first==='y')w='Y'+w.slice(1);
+ re=/^(.+?)(ss|i)es$/;re2=/^(.+?)([^s])s$/;
+ if(re.test(w))w=w.replace(re,'$1$2');else if(re2.test(w))w=w.replace(re2,'$1$2');
+ re=/^(.+?)eed$/;re2=/^(.+?)(ed|ing)$/;
+ if(re.test(w)){fp=re.exec(w);if(new RegExp(mgr0).test(fp[1]))w=w.slice(0,-1)}
+ else if(re2.test(w)){fp=re2.exec(w);stem=fp[1];if(new RegExp(sv).test(stem)){w=stem;
+  if(/(at|bl|iz)$/.test(w))w+='e';else if(new RegExp('([^aeiouylsz])\\1$').test(w))w=w.slice(0,-1);else if(new RegExp('^'+C+v+'[^aeiouwxy]$').test(w))w+='e'}}
+ re=/^(.+?)y$/;if(re.test(w)){fp=re.exec(w);stem=fp[1];if(new RegExp(sv).test(stem))w=stem+'i'}
+ re=/^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$/;
+ if(re.test(w)){fp=re.exec(w);stem=fp[1];suffix=fp[2];if(new RegExp(mgr0).test(stem))w=stem+s2[suffix]}
+ re=/^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$/;
+ if(re.test(w)){fp=re.exec(w);stem=fp[1];suffix=fp[2];if(new RegExp(mgr0).test(stem))w=stem+s3[suffix]}
+ re=/^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$/;re2=/^(.+?)(s|t)(ion)$/;
+ if(re.test(w)){fp=re.exec(w);stem=fp[1];if(new RegExp(mgr1).test(stem))w=stem}
+ else if(re2.test(w)){fp=re2.exec(w);stem=fp[1]+fp[2];if(new RegExp(mgr1).test(stem))w=stem}
+ re=/^(.+?)e$/;if(re.test(w)){fp=re.exec(w);stem=fp[1];re3=new RegExp('^'+C+v+'[^aeiouwxy]$');
+  if(new RegExp(mgr1).test(stem)||(new RegExp(meq1).test(stem)&&!re3.test(stem)))w=stem}
+ if(/ll$/.test(w)&&new RegExp(mgr1).test(w))w=w.slice(0,-1);
+ if(first==='y')w='y'+w.slice(1);
+ return w}
+function matchEnums(eh,er,out){for(let i=eh.length-1;i>=0;i--){for(let j=er.length-1;j>=0;j--){if(eh[i][1]===er[j][1]){out.push([eh[i][0],er[j][0]]);eh.splice(i,1);er.splice(j,1);break}}}}
+function meteorScore(reference,translation){
+ const r=String(reference??'').split(/\s+/).filter(Boolean),h=String(translation??'').split(/\s+/).filter(Boolean);
+ if(!r.length||!h.length)return NaN;
+ let eh=h.map((w,i)=>[i,w.toLowerCase()]),er=r.map((w,i)=>[i,w.toLowerCase()]);
+ const exact=[],stem=[];
+ matchEnums(eh,er,exact);
+ eh=eh.map(p=>[p[0],porterStem(p[1])]);er=er.map(p=>[p[0],porterStem(p[1])]);
+ matchEnums(eh,er,stem);
+ const m=exact.concat(stem).sort((a,b)=>a[0]-b[0]);
+ if(!m.length)return 0;
+ let chunks=1;for(let i=0;i<m.length-1;i++){if(!(m[i+1][0]===m[i][0]+1&&m[i+1][1]===m[i][1]+1))chunks++}
+ const P=m.length/h.length,R=m.length/r.length,fmean=(P*R)/(0.9*P+0.1*R);
+ return (1-0.5*Math.pow(chunks/m.length,3))*fmean}
+
+
+/* ---------- LEXICAL: BLEU and chrF++ (sacreBLEU conventions) ----------
+   Sentence BLEU: 13a tokenizer, exp smoothing, effective order, 4-grams.  chrF++: char 1-6 grams + word 1-2 grams, beta 2.
+   Both are scaled from 0-100 to 0-1. */
+function tok13a(line){
+ let s=String(line??'').replace(/<skipped>/g,'').replace(/-\n/g,'').replace(/\n/g,' ');
+ if(s.includes('&'))s=s.replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+ s=' '+s+' ';
+ s=s.replace(/([\{-\~\[-\` -\&\(-\+\:-\@\/])/g,' $1 ').replace(/([^0-9])([\.,])/g,'$1 $2 ').replace(/([\.,])([^0-9])/g,' $1 $2').replace(/([0-9])(-)/g,'$1 $2 ');
+ return s.split(/\s+/).filter(Boolean)}
+function ngramCounts(a,n){const m=new Map();for(let i=0;i+n<=a.length;i++){const k=a.slice(i,i+n).join('\u0001');m.set(k,(m.get(k)||0)+1)}return m}
+function overlapCount(h,r){let o=0;for(const[k,v]of h)o+=Math.min(v,r.get(k)||0);return o}
+function bleuScore(reference,translation){
+ const r=tok13a(reference),h=tok13a(translation);if(!r.length||!h.length)return 0;
+ const corr=[],tot=[];for(let n=1;n<=4;n++){corr.push(overlapCount(ngramCounts(h,n),ngramCounts(r,n)));tot.push(Math.max(h.length-n+1,0))}
+ if(corr[0]===0)return 0;
+ const prec=[0,0,0,0];let smooth=1,eff=4;
+ for(let n=1;n<=4;n++){if(tot[n-1]===0)break;eff=n;
+  if(corr[n-1]===0){smooth*=2;prec[n-1]=100/(smooth*tot[n-1])}else prec[n-1]=100*corr[n-1]/tot[n-1]}
+ const bp=h.length<r.length?(h.length>0?Math.exp(1-r.length/h.length):0):1;
+ let ls=0;for(let i=0;i<eff;i++)ls+=prec[i]>0?Math.log(prec[i]):-9999999999;
+ return bp*Math.exp(ls/eff)/100}
+const PUNCTS=new Set('!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'.split(''));
+function chrfWords(sent){const out=[];for(const w of sent.split(/\s+/).filter(Boolean)){const c=[...w];
+ if(c.length===1)out.push(w);else if(PUNCTS.has(c[c.length-1]))out.push(c.slice(0,-1).join(''),c[c.length-1]);else if(PUNCTS.has(c[0]))out.push(c[0],c.slice(1).join(''));else out.push(w)}return out}
+function chrfScore(reference,translation){
+ const hs=String(translation??''),rs=String(reference??'');
+ const hc=[...hs.split(/\s+/).join('')],rc=[...rs.split(/\s+/).join('')],hw=chrfWords(hs),rw=chrfWords(rs);
+ let ap=0,ar=0,eff=0;
+ const orders=[];for(let n=1;n<=6;n++)orders.push([hc,rc,n]);for(let n=1;n<=2;n++)orders.push([hw,rw,n]);
+ for(const[h,r,n]of orders){const hm=ngramCounts(h,n),rm=ngramCounts(r,n),nh=Math.max(h.length-n+1,0),nr=Math.max(r.length-n+1,0);
+  if(nh>0&&nr>0){const m=overlapCount(hm,rm);ap+=m/nh;ar+=m/nr;eff++}}
+ if(!eff)return 0;ap/=eff;ar/=eff;if(ap+ar===0)return 0;
+ return(5*ap*ar/(4*ap+ar))}
+
+/* ---------- SYNTACTIC: Notebook 04 ----------
+   POS similarity = difflib.SequenceMatcher(None, ref_tags, mt_tags).ratio()
+   Dependency similarity = F1 of the multisets of dependency labels (Counter overlap)
+   Syntactic = 0.5*POS + 0.5*Dependency */
+function seqRatio(a,b){
+ const la=a.length,lb=b.length;if(la+lb===0)return 1;
+ const b2j=new Map();b.forEach((x,i)=>{if(!b2j.has(x))b2j.set(x,[]);b2j.get(x).push(i)});
+ if(lb>=200){const nt=Math.floor(lb/100)+1;for(const[k,v]of[...b2j])if(v.length>nt)b2j.delete(k)}
+ function longest(alo,ahi,blo,bhi){let bi=alo,bj=blo,bs=0,j2=new Map();
+  for(let i=alo;i<ahi;i++){const n2=new Map();for(const j of(b2j.get(a[i])||[])){if(j<blo)continue;if(j>=bhi)break;const k=(j2.get(j-1)||0)+1;n2.set(j,k);if(k>bs){bi=i-k+1;bj=j-k+1;bs=k}}j2=n2}
+  while(bi>alo&&bj>blo&&a[bi-1]===b[bj-1]){bi--;bj--;bs++}
+  while(bi+bs<ahi&&bj+bs<bhi&&a[bi+bs]===b[bj+bs])bs++;
+  return[bi,bj,bs]}
+ const q=[[0,la,0,lb]];let M=0;
+ while(q.length){const[alo,ahi,blo,bhi]=q.pop(),[i,j,k]=longest(alo,ahi,blo,bhi);if(k){M+=k;if(alo<i&&blo<j)q.push([alo,i,blo,j]);if(i+k<ahi&&j+k<bhi)q.push([i+k,ahi,j+k,bhi])}}
+ return 2*M/(la+lb)}
+function counterF1(ref,mt){
+ if(!ref.length&&!mt.length)return 1;if(!ref.length||!mt.length)return 0;
+ const c1=new Map(),c2=new Map();ref.forEach(x=>c1.set(x,(c1.get(x)||0)+1));mt.forEach(x=>c2.set(x,(c2.get(x)||0)+1));
+ let ov=0;for(const[k,v]of c1)ov+=Math.min(v,c2.get(k)||0);
+ const P=ov/mt.length,R=ov/ref.length;return P+R===0?0:2*P*R/(P+R)}
+
+/* Rule-based stand-in for the Stanza taggers/parsers (those models cannot run in a web page).
+   It produces UPOS-style tags and UD-style relation labels, then the notebook formulas above are applied. */
+const TAGORDER=['ADP','AUX','CCONJ','SCONJ','DET','PRON','PART','ADV','ADJ','VERB'];
+const LEXD={
+ en:{ADP:'of in on at by for with from to into over under about between through during before after against among without within upon across toward towards',AUX:'is are was were be been being am has have had do does did will would shall should can could may might must',CCONJ:'and or but nor yet so',SCONJ:'because although though while if unless since whereas whether than as',DET:'the a an this that these those each every some any no all both another such',PRON:'i you he she it we they me him her us them my your his its our their who whom whose which what myself himself itself themselves',PART:'not n\'t \'s',ADV:'very also just only then there here now never always often again too quite more most',VERB:'go went come see make take get give say show use find tell work call try ask need feel become leave put mean keep let begin seem help talk turn start run move live believe hold bring happen write provide sit stand lose pay meet include continue set learn change lead understand watch follow stop create speak read allow add spend grow open walk win offer remember love consider appear buy wait serve die send expect build stay fall cut reach kill remain received said made known given taken'},
+ deva:{ADP:'का की के को से में पर तक ने द्वारा लिए लिये साथ बिना बाद पहले ऊपर नीचे अंदर बाहर मध्ये साठी कडून पासून वर खाली पर्यंत बरोबर शिवाय नंतर आधी पूर्वी विरुद्ध',AUX:'है हैं था थे थी थीं हो हूँ हों होगा होगी होंगे रहा रही रहे सकता सकती सकते चाहिए गया गई गए आहे आहेत होता होती होते असेल असतात आहोत नव्हता नव्हते',CCONJ:'और तथा एवं या अथवा लेकिन परंतु आणि व किंवा पण',SCONJ:'कि अगर यदि क्योंकि जब जबकि हालांकि जर कारण जेव्हा की जरी',DET:'इस उस इन उन हर सब सभी कुछ प्रत्येक सर्व या त्या ह्या अशा अनेक कित्येक',PRON:'मैं हम तुम आप वह वे यह ये कौन क्या कोई मुझे हमें उसे उन्हें इसे उसका उसकी उसके उनका उनकी उनके मेरा मेरी मेरे हमारा हमारी हमारे आपका आपकी अपना अपनी अपने जो मी आम्ही तू तुम्ही तो ती ते हा ही हे कोण काय कोणी मला आम्हाला त्याला तिला त्यांना त्याचा त्याची त्याचे त्यांचा त्यांची त्यांचे आपला आपली जी जे ज्या',PART:'भी ही तो नहीं न मत केवल सिर्फ सुद्धा देखील नाही',ADV:'अब यहाँ यहां वहाँ वहां कब कैसे बहुत ज्यादा अधिक फिर कभी हमेशा आता येथे तेथे खूप फार पुन्हा नेहमी बस',ADJ:'नया नई नए बड़ा बड़ी बड़े छोटा छोटी छोटे अच्छा अच्छी अच्छे बुरा पहला पहली पुराना नवीन नवा नवी नवे मोठा मोठी मोठे चांगला चांगली चांगले',VERB:'किया दिया लिया आया कहा मिला मिले मिली'},
+ gujr:{ADP:'ના ની નું નો નાં માં માટે થી સાથે પર વિના પછી પહેલાં તરફથી પાસેથી ને સુધી વચ્ચે અંદર બહાર',AUX:'છે છો છું છીએ હતો હતી હતું હતા હશે થયું થયો થઈ થયા શકે શકાય',CCONJ:'અને તથા અથવા પરંતુ પણ',SCONJ:'કે જો કારણ જ્યારે',DET:'દરેક બધા બધી બધું કેટલાક આવા એવા',PRON:'હું અમે તું તમે તે તેઓ આ એ કોણ શું કોઈ મને અમને તેને તેમને તેના તેની તેનું તેમના મારા મારી મારું તમારા અમારા પોતાના જે',PART:'જ નથી ના ફક્ત માત્ર',ADV:'હવે અહીં ત્યાં ખૂબ ફરીથી હંમેશા ક્યારેય',ADJ:'નવો નવી નવું નવા મોટો મોટી મોટું સારો સારી સારું નાનો નાની નાનું',VERB:''},
+ knda:{ADP:'ಜೊತೆ ಮೇಲೆ ಕೆಳಗೆ ಬಗ್ಗೆ ನಂತರ ಮೊದಲು ವರೆಗೆ ಹೊರತಾಗಿ ಒಳಗೆ ಹೊರಗೆ ವಿರುದ್ಧ',AUX:'ಇದೆ ಇದ್ದ ಇದ್ದರು ಇವೆ ಆಗಿದೆ ಇಲ್ಲ ಆಗಿವೆ ಇದ್ದವು ಆಗಿದ್ದಾರೆ',CCONJ:'ಮತ್ತು ಅಥವಾ ಆದರೆ ಹಾಗೂ',SCONJ:'ಎಂದು ಎಂಬ ಏಕೆಂದರೆ ಯಾಕೆಂದರೆ ಎಂದರೆ ಯಾವಾಗ',DET:'ಪ್ರತಿ ಎಲ್ಲಾ ಈ ಆ ಯಾವ ಕೆಲವು',PRON:'ನಾನು ನಾವು ನೀನು ನೀವು ಅವನು ಅವಳು ಅವರು ಇದು ಅದು ಯಾರು ಏನು ನನ್ನ ನಮ್ಮ ನಿಮ್ಮ ಅವನ ಅವಳ ಅವರ ಅದರ ಇದರ ತಮ್ಮ',PART:'ಸಹ ಕೂಡ ಮಾತ್ರ',ADV:'ಈಗ ಇಲ್ಲಿ ಅಲ್ಲಿ ತುಂಬಾ ಮತ್ತೆ ಯಾವಾಗಲೂ ಇನ್ನೂ',ADJ:'ಹೊಸ ದೊಡ್ಡ ಚಿಕ್ಕ ಒಳ್ಳೆಯ ಹಳೆಯ',VERB:''},
+ mlym:{ADP:'പോലെ വരെ മുമ്പ് ശേഷം കൂടെ വേണ്ടി ഉള്ളിൽ പുറത്ത് മേൽ',AUX:'ആണ് ആകുന്നു ഉണ്ട് ഉണ്ടായിരുന്നു ആയിരുന്നു ഇല്ല ആയിരിക്കും ആകും',CCONJ:'ഒപ്പം അല്ലെങ്കിൽ പക്ഷേ എന്നാൽ കൂടാതെ',SCONJ:'എന്ന് എങ്കിൽ കാരണം',DET:'എല്ലാ ഓരോ ഈ ആ ചില',PRON:'ഞാൻ ഞങ്ങൾ നീ നിങ്ങൾ അവൻ അവൾ അവർ ഇത് അത് ആര് എന്ത് എന്റെ ഞങ്ങളുടെ നിങ്ങളുടെ അവന്റെ അവളുടെ അവരുടെ ഇതിന്റെ അതിന്റെ',PART:'പോലും മാത്രം',ADV:'ഇപ്പോൾ ഇവിടെ അവിടെ വളരെ വീണ്ടും എപ്പോഴും',ADJ:'പുതിയ വലിയ ചെറിയ നല്ല പഴയ',VERB:''},
+ orya:{ADP:'ପାଇଁ ସହ ସହିତ ପରେ ପୂର୍ବରୁ ଭିତରେ ବାହାରେ ଉପରେ ତଳେ ପର୍ଯ୍ୟନ୍ତ',AUX:'ଅଛି ଅଛନ୍ତି ଥିଲା ଥିଲେ ହେବ ହୁଏ ହେଉଛି ଅଟେ ନାହିଁ',CCONJ:'ଏବଂ ଓ କିମ୍ବା ମାତ୍ର କିନ୍ତୁ',SCONJ:'ଯଦି କାରଣ ଯେ',DET:'ପ୍ରତ୍ୟେକ ସବୁ ଏହି ସେହି କେତେକ',PRON:'ମୁଁ ଆମେ ତୁମେ ସେ ସେମାନେ ଏହା ତାହା କିଏ କଣ ମୋର ଆମର ତୁମର ତାଙ୍କର ତାହାର ଏମାନେ',PART:'ହିଁ ମଧ୍ୟ କେବଳ',ADV:'ବର୍ତ୍ତମାନ ଏଠାରେ ସେଠାରେ ବହୁତ ପୁନର୍ବାର ସର୍ବଦା ଏବେ',ADJ:'ନୂଆ ବଡ଼ ଛୋଟ ଭଲ ପୁରୁଣା ନୂତନ',VERB:''}};
+const VSUF={en:/(ing|ed)$/,deva:/(ना|ता|ती|ते|ेगा|ेगी|ेंगे|ाया|ाएगा|ाएँगे|ाएगी|ले|ली|ल्या|णे|ेल|ेत|तात|ावे)$/,gujr:/(વું|તો|તી|તું|તા|યો|યું|યા|શે|શું|શો)$/,knda:/(ಾರೆ|ತ್ತದೆ|ತ್ತಾನೆ|ತ್ತಾಳೆ|ತ್ತೇನೆ|ತ್ತೇವೆ|ದರು|ದನು|ದಳು|ದವು|ಯಿತು|ಲಾಗುವುದು|ಲಾಗುತ್ತದೆ|ಲಾಗಿದೆ|ಬೇಕು|ಬಹುದು|ಲಿಲ್ಲ)$/,mlym:/(ുന്നു|ക്കും|ിച്ചു|ച്ചു|ട്ടു|ണ്ടു|ിരുന്നു|ണം|ാകും|ുന്നത്)$/,orya:/(ିବ|ଯିବ|ଛନ୍ତି|ଇଲେ|ଇଲା|ିଲା|ିଲେ|ଉଛି|ୁଛି|ଲେ|ଲା)$/};
+const LEXMAP={};for(const k in LEXD){const m=new Map();for(const t of TAGORDER)(LEXD[k][t]||'').split(' ').filter(Boolean).forEach(w=>{if(!m.has(w))m.set(w,t)});LEXMAP[k]=m}
+const NUMW=new Set('one two three four five six seven eight nine ten eleven twelve hundred thousand million billion first second third'.split(' '));
+const SCRIPTS=[['en',/[A-Za-z]/],['deva',/[\u0900-\u097F]/],['gujr',/[\u0A80-\u0AFF]/],['orya',/[\u0B00-\u0B7F]/],['knda',/[\u0C80-\u0CFF]/],['mlym',/[\u0D00-\u0D7F]/]];
+function detectKey(text){const cnt={};for(const ch of String(text??'')){for(const[k,re]of SCRIPTS)if(re.test(ch)){cnt[k]=(cnt[k]||0)+1;break}}let b='en',n=0;for(const k in cnt)if(cnt[k]>n){b=k;n=cnt[k]}return b}
+const TOKRE=/[\p{L}\p{M}\p{N}\u200c\u200d_'’-]+|[^\s\p{L}\p{M}\p{N}]/gu;
+const wtok=t=>String(t??'').match(TOKRE)||[];
+function tagTokens(tokens,key){const lex=LEXMAP[key],out=[];
+ tokens.forEach((tk,i)=>{const lw=tk.toLowerCase();let t;
+  if(/^[^\p{L}\p{N}]+$/u.test(tk))t='PUNCT';
+  else if(/^\p{N}[\p{N}.,]*$/u.test(tk))t='NUM';
+  else if(lex.has(lw))t=lex.get(lw);
+  else if(key==='en'){if(NUMW.has(lw))t='NUM';else if(i>0&&/^[A-Z]/.test(tk))t='PROPN';else if(lw.length>3&&/ly$/.test(lw))t='ADV';else if(lw.length>4&&/(ing|ed)$/.test(lw))t='VERB';else if(lw.length>4&&/(ous|ful|ive|ic|al|able|ible|less|ish)$/.test(lw))t='ADJ';else t='NOUN'}
+  else t=VSUF[key].test(tk)?'VERB':'NOUN';
+  out.push(t)});return out}
+function depLabels(tags,key){
+ const n=tags.length,fin=key!=='en',idx=t=>tags.map((x,i)=>x===t?i:-1).filter(i=>i>=0);
+ const verbs=idx('VERB'),auxs=idx('AUX'),nom=i=>['NOUN','PROPN','PRON'].includes(tags[i]);
+ let root=-1;
+ if(verbs.length)root=fin?verbs[verbs.length-1]:verbs[0];
+ else if(auxs.length&&fin)root=auxs[auxs.length-1];
+ else{const a=auxs[0]??-1;root=tags.findIndex((t,i)=>i>a&&['NOUN','ADJ','PROPN'].includes(t));if(root<0)root=a;if(root<0)root=0}
+ const hasVerb=verbs.length>0,lab=new Array(n).fill('dep');let pre=0,post=0;
+ for(let i=0;i<n;i++){const t=tags[i];
+  if(i===root){lab[i]='root';continue}
+  if(t==='PUNCT')lab[i]='punct';else if(t==='ADP')lab[i]='case';else if(t==='DET')lab[i]='det';else if(t==='NUM')lab[i]='nummod';
+  else if(t==='ADJ')lab[i]='amod';else if(t==='ADV'||t==='PART')lab[i]='advmod';else if(t==='AUX')lab[i]=hasVerb?'aux':'cop';
+  else if(t==='CCONJ')lab[i]='cc';else if(t==='SCONJ')lab[i]='mark';
+  else if(t==='VERB')lab[i]=(i>0&&tags[i-1]==='CCONJ')?'conj':'advcl';
+  else if(nom(i)){
+   const next=tags[i+1],prev=tags[i-1];
+   if(t!=='PRON'&&(next==='NOUN'||next==='PROPN'))lab[i]=key==='en'?'compound':'nmod';
+   else if(fin?next==='ADP':prev==='ADP')lab[i]=hasVerb?'obl':'nmod';
+   else if(i<root){lab[i]=pre===0?'nsubj':(fin&&pre===1?'obj':'nmod');pre++}
+   else{lab[i]=post===0?'obj':'obl';post++}}}
+ /* word-order checks: a dependent in an impossible position gets the unspecific label 'dep', as a parser would fail to attach it */
+ const nextIdx=(i,pred,span)=>{for(let k=i+1;k<=Math.min(n-1,i+span);k++){if(tags[k]==='PUNCT')continue;if(pred(tags[k]))return k}return -1};
+ const nomOrMod=t=>['NOUN','PROPN','PRON','ADJ','NUM'].includes(t);
+ for(let i=0;i<n;i++){const t=tags[i];if(i===root||t==='PUNCT')continue;
+  if(t==='DET'||t==='NUM'||(t==='ADJ'&&lab[i]==='amod')){if(nextIdx(i,x=>['NOUN','PROPN','ADJ','NUM'].includes(x),3)<0&&!(t==='ADJ'))lab[i]='dep';else if(t==='ADJ'&&nextIdx(i,x=>['NOUN','PROPN'].includes(x),3)<0&&!fin)lab[i]='dep'}
+  if(t==='ADP'){if(fin){const p=tags.slice(0,i).reverse().find(x=>x!=='PUNCT');if(!(p&&nomOrMod(p)))lab[i]='dep'}else if(nextIdx(i,nomOrMod,3)<0)lab[i]='dep'}
+  if(fin&&i>root&&root>=0&&['NOUN','PROPN','PRON','ADJ','ADV','DET','NUM','ADP','PART'].includes(t))lab[i]='dep';
+  if(!fin&&t==='AUX'&&hasVerb&&i>root)lab[i]='dep'}
+ return lab}
+function posSim(refTags,mtTags){return seqRatio(refTags,mtTags)}
+function syntacticParts(ref,mt,key){
+ const rt=wtok(ref),mtk=wtok(mt),rp=tagTokens(rt,key),mp=tagTokens(mtk,key);
+ return{pos:posSim(rp,mp),dep:counterF1(depLabels(rp,key),depLabels(mp,key))}}
+
+/* ---------- SEMANTIC: Notebook 05 ----------
+   BERTScore F1 (greedy matching of token embeddings; P over candidate tokens, R over reference tokens, no idf, no baseline rescaling).
+   Real scores use mBERT contextual embeddings. Stand-in here: character n-gram token vectors, then placed on the mBERT
+   scale using the notebook's observed minimum (0.6127) so the same min-max bounds apply. */
+const BERT_FLOOR=0.6127;
+const CTXW=Number(globalThis.__CTXW||1);   // squared weight of each neighbour's features (mBERT vectors are contextual)
+const ngCache=new Map();
+function ngr(tok){let g=ngCache.get(tok);if(g)return g;const s=['<',...tok,'>'],set=new Set();
+ for(let n=2;n<=4;n++)for(let i=0;i+n<=s.length;i++)set.add(s.slice(i,i+n).join(''));
+ g=set;if(ngCache.size>200000)ngCache.clear();ngCache.set(tok,g);return g}
+const BOS=new Set(['\u0002BOS']),EOS=new Set(['\u0002EOS']);
+function inter(A,B){const[S,L]=A.size<=B.size?[A,B]:[B,A];let c=0;for(const x of S)if(L.has(x))c++;return c}
+/* each token vector = its own character n-grams + n-grams of its left neighbour + n-grams of its right neighbour,
+   so the same word in a different position or context no longer matches perfectly */
+function ctxVecs(tokens){const n=tokens.length;return tokens.map((t,i)=>{const o=ngr(t),l=i?ngr(tokens[i-1]):BOS,r=i<n-1?ngr(tokens[i+1]):EOS;return{o,l,r,nn:o.size+CTXW*(l.size+r.size)}})}
+function ctxSim(a,b){return(inter(a.o,b.o)+CTXW*(inter(a.l,b.l)+inter(a.r,b.r)))/Math.sqrt(a.nn*b.nn)}
+function bertScoreProxy(translation,reference){
+ const ht=wtok(translation),rt=wtok(reference);if(!ht.length||!rt.length)return NaN;
+ const h=ctxVecs(ht),r=ctxVecs(rt),rm=new Array(r.length).fill(0);let P=0;
+ for(const a of h){let best=0;r.forEach((b,j)=>{const s=ctxSim(a,b);if(s>best)best=s;if(s>rm[j])rm[j]=s});P+=best}
+ P/=h.length;const R=rm.reduce((x,y)=>x+y,0)/r.length,F=P+R===0?0:2*P*R/(P+R);
+ return BERT_FLOOR+(1-BERT_FLOOR)*F}
+
+/* COMET stand-in (reference-based COMET is a neural sentence-level regressor and cannot run in a web page):
+   cosine between sentence vectors built by summing each token's context-aware character n-gram features.
+   Unlike BERTScore (greedy token-to-token matching) this compares the two sentences as wholes. */
+function sentVec(tokens){const v=new Map(),add=(k,w)=>v.set(k,(v.get(k)||0)+w),n=tokens.length;
+ tokens.forEach((t,i)=>{for(const g of ngr(t))add('o'+g,1);if(i)for(const g of ngr(tokens[i-1]))add('l'+g,1);if(i<n-1)for(const g of ngr(tokens[i+1]))add('r'+g,1)});return v}
+function cometProxy(translation,reference){
+ const ht=wtok(translation),rt=wtok(reference);if(!ht.length||!rt.length)return NaN;
+ const a=sentVec(ht),b=sentVec(rt);let d=0,na=0,nb=0;
+ for(const[k,x]of a){na+=x*x;const y=b.get(k);if(y)d+=x*y}for(const y of b.values())nb+=y*y;
+ return na&&nb?clamp(d/Math.sqrt(na*nb)):0}
+
+/* ---------- one translation: compute whichever components are not supplied ---------- */
+function components(mt,ref,key,have){
+ have=have||{};const o={};
+ o.bleu=Number.isFinite(have.bleu)?have.bleu:bleuScore(ref,mt);
+ o.chrf=Number.isFinite(have.chrf)?have.chrf:chrfScore(ref,mt);
+ o.met=Number.isFinite(have.met)?have.met:meteorScore(ref,mt);
+ if(Number.isFinite(have.pos)&&Number.isFinite(have.dep)){o.pos=have.pos;o.dep=have.dep}
+ else{const s=syntacticParts(ref,mt,key);o.pos=Number.isFinite(have.pos)?have.pos:s.pos;o.dep=Number.isFinite(have.dep)?have.dep:s.dep}
+ o.bert=Number.isFinite(have.bert)?have.bert:bertScoreProxy(mt,ref);
+ o.comet=Number.isFinite(have.comet)?have.comet:cometProxy(mt,ref);
+ return o}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const COMP=[['lex','bleu','BLEU'],['lex','chrf','chrF++'],['lex','met','METEOR'],['syn','pos','POS similarity'],['syn','dep','Dependency similarity'],['sem','bert','BERTScore F1'],['sem','comet','COMET']];
+const DEFAULTS={a:.3,b:.3,g:.4,bleu:.3,chrf:.35,met:.35,pos:.5,dep:.5,bert:.5,comet:.5};
+const BOUNDS={bleu:[0,1],chrf:[0,1],met:[0,1],pos:[0,1],dep:[0,1],bert:[0.6127,1],comet:[0,1]};
+const LANG=['Gujarati','Hindi','Kannada','Malayalam','Marathi','Odia'];
+const LANGS={
+ English:{code:'en',key:'en',re:/[A-Za-z]/},Gujarati:{code:'gu',key:'gujr',re:/[\u0A80-\u0AFF]/},Hindi:{code:'hi',key:'deva',re:/[\u0900-\u097F]/},
+ Kannada:{code:'kn',key:'knda',re:/[\u0C80-\u0CFF]/},Malayalam:{code:'ml',key:'mlym',re:/[\u0D00-\u0D7F]/},Marathi:{code:'mr',key:'deva',re:/[\u0900-\u097F]/},Odia:{code:'or',key:'orya',re:/[\u0B00-\u0B7F]/}};
+const DATA={
+ English:[['Health centres will open in every village.','Health centres will be opened in every village.'],['Education is the key to progress.','Education is the way to progress.'],['The farmers received new seeds from the government.','Farmers got new seeds from the government.']],
+ Gujarati:[['દરેક ગામમાં આરોગ્ય કેન્દ્રો ખોલવામાં આવશે.','દરેક ગામમાં આરોગ્ય કેન્દ્રો શરૂ થશે.'],['શિક્ષણ એ પ્રગતિની ચાવી છે.','શિક્ષણ પ્રગતિની કૂંચી છે.'],['ખેડૂતોને સરકાર તરફથી નવા બિયારણ મળ્યા.','ખેડૂતોએ સરકાર પાસેથી નવા બિયારણ મેળવ્યા.']],
+ Hindi:[['हर गाँव में स्वास्थ्य केंद्र खोले जाएँगे।','हर गाँव में स्वास्थ्य केंद्र खुलेंगे।'],['शिक्षा प्रगति की कुंजी है।','शिक्षा तरक्की की चाबी है।'],['किसानों को सरकार से नए बीज मिले।','किसानों ने सरकार से नए बीज प्राप्त किए।']],
+ Kannada:[['ಪ್ರತಿ ಹಳ್ಳಿಯಲ್ಲಿ ಆರೋಗ್ಯ ಕೇಂದ್ರಗಳನ್ನು ತೆರೆಯಲಾಗುವುದು.','ಪ್ರತಿ ಹಳ್ಳಿಯಲ್ಲಿ ಆರೋಗ್ಯ ಕೇಂದ್ರಗಳು ಆರಂಭವಾಗುತ್ತವೆ.'],['ಶಿಕ್ಷಣವೇ ಪ್ರಗತಿಯ ಕೀಲಿಕೈ.','ಶಿಕ್ಷಣ ಪ್ರಗತಿಯ ಕೀಲಿ.'],['ರೈತರಿಗೆ ಸರ್ಕಾರದಿಂದ ಹೊಸ ಬೀಜಗಳು ಸಿಕ್ಕಿದವು.','ರೈತರು ಸರ್ಕಾರದಿಂದ ಹೊಸ ಬೀಜಗಳನ್ನು ಪಡೆದರು.']],
+ Malayalam:[['എല്ലാ ഗ്രാമങ്ങളിലും ആരോഗ്യ കേന്ദ്രങ്ങൾ തുറക്കും.','എല്ലാ ഗ്രാമത്തിലും ആരോഗ്യ കേന്ദ്രങ്ങൾ ആരംഭിക്കും.'],['വിദ്യാഭ്യാസമാണ് പുരോഗതിയുടെ താക്കോൽ.','വിദ്യാഭ്യാസം പുരോഗതിയുടെ താക്കോലാണ്.'],['കർഷകർക്ക് സർക്കാരിൽ നിന്ന് പുതിയ വിത്തുകൾ ലഭിച്ചു.','കർഷകർ സർക്കാരിൽ നിന്ന് പുതിയ വിത്തുകൾ സ്വീകരിച്ചു.']],
+ Marathi:[['प्रत्येक गावात आरोग्य केंद्रे उघडली जातील।','प्रत्येक गावात आरोग्य केंद्रे सुरू होतील।'],['शिक्षण ही प्रगतीची गुरुकिल्ली आहे।','शिक्षण प्रगतीची किल्ली आहे।'],['शेतकऱ्यांना सरकारकडून नवीन बियाणे मिळाले।','शेतकऱ्यांनी सरकारकडून नवीन बियाणे घेतले।']],
+ Odia:[['ପ୍ରତ୍ୟେକ ଗାଁରେ ସ୍ୱାସ୍ଥ୍ୟ କେନ୍ଦ୍ର ଖୋଲାଯିବ।','ପ୍ରତ୍ୟେକ ଗାଁରେ ସ୍ୱାସ୍ଥ୍ୟ କେନ୍ଦ୍ର ଆରମ୍ଭ ହେବ।'],['ଶିକ୍ଷା ପ୍ରଗତିର ଚାବିକାଠି।','ଶିକ୍ଷା ପ୍ରଗତିର ଚାବି।'],['ଚାଷୀମାନେ ସରକାରଙ୍କଠାରୁ ନୂଆ ବିହନ ପାଇଲେ।','ଚାଷୀମାନେ ସରକାରଙ୍କଠାରୁ ନୂତନ ବିହନ ଗ୍ରହଣ କଲେ।']]};
+const dirs=[];LANG.forEach(l=>dirs.push(['English',l]));LANG.forEach(l=>dirs.push([l,'English']));
+function pair(i){const d=dirs[i];return DATA[d[0]].map((s,k)=>({src:s[0],ref:DATA[d[1]][k][0],mt:DATA[d[1]][k][1]}))}
+
+/* weights + fusion (min-max normalisation, Section on normalisation in the Mulya document) */
+const g=id=>Math.max(0,+$(id).value||0);
+function weights(){return{a:g('#wa'),b:g('#wb'),g:g('#wg'),bleu:g('#w_bleu'),chrf:g('#w_chrf'),met:g('#w_met'),pos:g('#w_pos'),dep:g('#w_dep'),bert:g('#w_bert'),comet:g('#w_comet')}}
+function norm(x,k){const lo=+$('#nmin_'+k).value,hi=+$('#nmax_'+k).value;return hi>lo?clamp((x-lo)/(hi-lo)):clamp(x)}
+function fuse(c,w){
+ const dim=d=>{let s=0,t=0;for(const m of COMP){if(m[0]!==d)continue;const x=c[m[1]];if(!Number.isFinite(x)||!(w[m[1]]>0))continue;s+=w[m[1]]*norm(x,m[1]);t+=w[m[1]]}return t?s/t:NaN};
+ const L=dim('lex'),S=dim('syn'),E=dim('sem');
+ let num=0,den=0;[[w.a,L],[w.b,S],[w.g,E]].forEach(([wt,v])=>{if(Number.isFinite(v)&&wt>0){num+=wt*v;den+=wt}});
+ return{L,S,E,mul:den?num/den:NaN}}
+const fx=v=>Number.isFinite(v)?v.toFixed(3):'n/a';
+
+/* build UI */
+$('#dir').innerHTML=dirs.map((d,i)=>`<option value="${i}">${d[0]} → ${d[1]}</option>`).join('');$('#dir').value=1;
+$('#normtbl').innerHTML='<tr><th>Metric</th><th>min</th><th>max</th></tr>'+COMP.map(m=>`<tr><td>${m[2]}</td><td><input class="nb" type="number" step=".0001" id="nmin_${m[1]}" aria-label="${m[2]} min"></td><td><input class="nb" type="number" step=".0001" id="nmax_${m[1]}" aria-label="${m[2]} max"></td></tr>`).join('');
+function resetDefaults(){$('#wa').value=DEFAULTS.a;$('#wb').value=DEFAULTS.b;$('#wg').value=DEFAULTS.g;['bleu','chrf','met','pos','dep','bert','comet'].forEach(k=>$('#w_'+k).value=DEFAULTS[k]);
+ COMP.forEach(m=>{$('#nmin_'+m[1]).value=BOUNDS[m[1]][0];$('#nmax_'+m[1]).value=BOUNDS[m[1]][1]});update()}
+function scriptCheck(id,lang){const t=$(id).value,el=$('#w'+id.slice(1)),L=LANGS[lang];
+ const letters=[...t].filter(c=>/\p{L}/u.test(c));
+ if(!letters.length){el.textContent='';return}
+ el.textContent=letters.filter(c=>L.re.test(c)).length/letters.length<.5?`This text does not look like ${lang}. Enter ${lang} text for this field.`:''}
+function applyDirection(fill){const d=dirs[+$('#dir').value];
+ $('#lsrc').textContent=`Source sentence (${d[0]})`;$('#lref').textContent=`Reference translation (${d[1]})`;$('#lmt').textContent=`Machine translation (${d[1]})`;
+ $('#src').lang=LANGS[d[0]].code;$('#ref').lang=LANGS[d[1]].code;$('#mt').lang=LANGS[d[1]].code;
+ if(fill){const s=pair(+$('#dir').value)[0];$('#src').value=s.src;$('#ref').value=s.ref;$('#mt').value=s.mt}
+ update()}
+function update(){const d=dirs[+$('#dir').value];scriptCheck('#src',d[0]);scriptCheck('#ref',d[1]);scriptCheck('#mt',d[1]);
+ const c=components($('#mt').value,$('#ref').value,LANGS[d[1]].key),f=fuse(c,weights());
+ $('#mul').textContent=fx(f.mul)}
+
+/* ---------- stats ---------- */
+const rank=a=>{const idx=a.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]),r=[];for(let i=0;i<idx.length;){let j=i;while(j+1<idx.length&&idx[j+1][0]===idx[i][0])j++;const av=(i+j)/2+1;for(let k=i;k<=j;k++)r[idx[k][1]]=av;i=j+1}return r};
+function pearson(x,y){const n=x.length,mx=x.reduce((a,b)=>a+b)/n,my=y.reduce((a,b)=>a+b)/n;let s=0,a=0,b=0;for(let i=0;i<n;i++){s+=(x[i]-mx)*(y[i]-my);a+=(x[i]-mx)**2;b+=(y[i]-my)**2}return a&&b?s/Math.sqrt(a*b):NaN}
+function kendall(x,y){const n=x.length;let c=0,d=0,tx=0,ty=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=Math.sign(x[i]-x[j]),b=Math.sign(y[i]-y[j]);if(a*b>0)c++;else if(a*b<0)d++;else{if(a)tx++;if(b)ty++}}const den=Math.sqrt((c+d+tx)*(c+d+ty));return den?(c-d)/den:NaN}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+const tick=()=>new Promise(r=>setTimeout(r,0));
+function corrHTML(x,H){
+ if(x.length<3)return '<p class="note">Add human scores for at least 3 scored rows to see correlations.</p>';
+ let kx=x,kh=H,note='';
+ if(x.length>3000){const st=x.length/3000,ix=[];for(let i=0;i<3000;i++)ix.push(Math.floor(i*st));kx=ix.map(i=>x[i]);kh=ix.map(i=>H[i]);note=' Kendall τ uses an evenly spaced sample of 3,000 rows.'}
+ return [['Pearson r',pearson(x,H)],['Spearman ρ',pearson(rank(x),rank(H))],['Kendall τ',kendall(kx,kh)]].map(([n,v])=>`<div><span class="note">${n}</span><b>${fx(v)}</b></div>`).join('')+`<p class="note" style="flex-basis:100%;margin:0">n = ${x.length} rows with human scores.${note}</p>`}
+async function saveCsv(name,text){
+ try{if(typeof claude!=='undefined'){const dl=await claude.use('downloads');if(dl){await dl.save({filename:name,data:new Blob(['\ufeff'+text],{type:'text/csv'})});return}}}catch(e){if(e&&e.code==='declined')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+text],{type:'text/csv'}));a.download=name;a.click()}
+const humNum=v=>{if(v===''||v==null)return NaN;const n=+String(v).replace(',','.');return Number.isFinite(n)?n:NaN};
+const numVal=v=>{if(v===''||v==null)return NaN;const n=Number(String(v).trim());return Number.isFinite(n)?n:NaN};
+const f4=v=>Number.isFinite(v)?v.toFixed(4):'';
+const CSVH='source,reference,translation,human,LEX,SYN,SEM,Mulya,BLEU,chrF++,METEOR,POS_similarity,Dependency_similarity,BERTScore_F1,COMET';
+
+/* ---------- batch table ---------- */
+let brows=[];
+const newRow=o=>Object.assign({src:'',ref:'',mt:'',h:'',res:null,c:null},o||{});
+const BH='<tr><th>#</th><th>Source</th><th>Reference</th><th>Translation</th><th>Human (0–1)</th><th>LEX</th><th>SYN</th><th>SEM</th><th>Mulya</th><th></th></tr>';
+function resCells(i){const r=brows[i].res;return [0,1,2,3].map(k=>`<td class="num" id="r${i}_${k}">${r?(k==3?'<b>'+fx(r[k])+'</b>':fx(r[k])):'—'}</td>`).join('')}
+function badH(v){const n=humNum(v);return v!==''&&(isNaN(n)||n<0||n>1)}
+function renderBatch(){
+ $('#btbl').innerHTML=BH+brows.map((r,i)=>`<tr data-i="${i}"><td>${i+1}</td>
+  <td><textarea data-f="src" aria-label="Source, row ${i+1}">${esc(r.src)}</textarea></td>
+  <td><textarea data-f="ref" aria-label="Reference, row ${i+1}">${esc(r.ref)}</textarea></td>
+  <td><textarea data-f="mt" aria-label="Translation, row ${i+1}">${esc(r.mt)}</textarea></td>
+  <td><input class="h${badH(r.h)?' bad':''}" data-f="h" type="number" min="0" max="1" step="0.01" value="${esc(r.h)}" aria-label="Human score, row ${i+1}"></td>
+  ${resCells(i)}
+  <td><button class="btn alt" data-del="${i}" aria-label="Delete row ${i+1}">✕</button></td></tr>`).join('');
+ $('#cor').innerHTML=''}
+function sampleRows(){const p=pair(+$('#dir').value),hum=[1,.85,.8,.7,.2,.05],rev=t=>t.split(/\s+/).reverse().join(' ');
+ return [[p[0].src,p[0].ref,p[0].ref],[p[0].src,p[0].ref,p[0].mt],[p[1].src,p[1].ref,p[1].mt],[p[2].src,p[2].ref,p[2].mt],[p[0].src,p[0].ref,rev(p[0].ref)],[p[0].src,p[0].ref,p[1].ref]]
+  .map((x,i)=>newRow({src:x[0],ref:x[1],mt:x[2],h:hum[i]}))}
+function runBatch(){
+ const w=weights();let skipped=0,badHum=0;
+ brows.forEach(r=>{if(!r.ref.trim()||!r.mt.trim()){r.res=null;r.c=null;if(r.ref.trim()||r.mt.trim()||r.src.trim())skipped++;return}
+  const c=components(r.mt,r.ref,detectKey(r.ref)),f=fuse(c,w);r.c=c;r.res=[f.L,f.S,f.E,f.mul]});
+ renderBatch();
+ const x=[],H=[];brows.forEach(r=>{if(!r.res||r.h===''||!Number.isFinite(r.res[3]))return;if(badH(r.h)){badHum++;return}x.push(r.res[3]);H.push(humNum(r.h))});
+ let msg='';if(skipped)msg+=`<p class="note" style="flex-basis:100%;margin:0">${skipped} row(s) skipped: reference or translation is empty.</p>`;
+ if(badHum)msg+=`<p class="note" style="flex-basis:100%;margin:0">${badHum} row(s) have a human score outside 0–1 and were left out of the correlation.</p>`;
+ if(!brows.some(r=>r.res))msg='<p class="note">Nothing to score yet. Fill in at least a reference and a translation.</p>';
+ $('#cor').innerHTML=(brows.some(r=>r.res)?corrHTML(x,H):'')+msg}
+function downloadBatch(){if(!brows.some(r=>r.res))runBatch();
+ const rows=brows.filter(r=>r.res);if(!rows.length)return;
+ saveCsv('mulya_table_results.csv',CSVH+'\n'+rows.map(r=>[q(r.src),q(r.ref),q(r.mt),r.h,...r.res.map(f4),f4(r.c.bleu),f4(r.c.chrf),f4(r.c.met),f4(r.c.pos),f4(r.c.dep),f4(r.c.bert),f4(r.c.comet)].join(',')).join('\n'))}
+
+/* ---------- dataset upload ---------- */
+let UP={rows:[],headers:[],res:null};
+const readAB=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsArrayBuffer(f)});
+function parseDelimited(t,fs){const out=[];let row=[],cur='',inq=false;
+ for(let i=0;i<t.length;i++){const c=t[i];
+  if(inq){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else inq=false}else cur+=c}
+  else if(c==='"')inq=true;else if(c===fs){row.push(cur);cur=''}
+  else if(c==='\n'){row.push(cur);out.push(row);row=[];cur=''}else if(c!=='\r')cur+=c}
+ if(cur!==''||row.length){row.push(cur);out.push(row)}return out}
+async function readDataset(f,opts){
+ opts=opts||{};
+ const ext=(f.name.split('.').pop()||'').toLowerCase(),buf=await readAB(f);let aoa;
+ if(opts.txtLines&&ext==='txt'){aoa=new TextDecoder('utf-8').decode(buf).replace(/^\ufeff/,'').split(/\r?\n/).map(l=>[l])}
+ else if(ext==='json'||ext==='jsonl'){
+  const text=new TextDecoder('utf-8').decode(buf).replace(/^\ufeff/,'');let arr;
+  if(ext==='jsonl')arr=text.split('\n').filter(l=>l.trim()).map(l=>JSON.parse(l));
+  else{arr=JSON.parse(text);if(!Array.isArray(arr)){const k=Object.keys(arr).find(k=>Array.isArray(arr[k]));if(!k)throw new Error('The JSON file must hold a list of records.');arr=arr[k]}}
+  const keys=[];arr.slice(0,200).forEach(o=>Object.keys(o||{}).forEach(k=>{if(!keys.includes(k))keys.push(k)}));
+  aoa=[keys].concat(arr.map(o=>keys.map(k=>o==null?'':(typeof o[k]==='object'?JSON.stringify(o[k]):o[k]))))
+ }else if(['csv','tsv','txt'].includes(ext)){
+  const text=new TextDecoder('utf-8').decode(buf).replace(/^\ufeff/,''),first=text.split('\n')[0]||'';
+  const tabs=(first.match(/\t/g)||[]).length,commas=(first.match(/,/g)||[]).length,semis=(first.match(/;/g)||[]).length;
+  const fs=ext==='tsv'||tabs>commas&&tabs>=semis?'\t':semis>commas?';':',';
+  if(typeof XLSX!=='undefined'){const wb=XLSX.read(text,{type:'string',raw:true,FS:fs});aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''})}
+  else aoa=parseDelimited(text,fs);
+ }else{
+  if(typeof XLSX==='undefined')throw new Error('The spreadsheet reader could not load. Save the file as .csv and upload that instead.');
+  const wb=XLSX.read(new Uint8Array(buf),{type:'array'});aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''})}
+ if(opts.keepEmpty){while(aoa.length&&aoa[aoa.length-1].every(c=>String(c??'').trim()===''))aoa.pop()}
+ else aoa=aoa.filter(r=>r.some(c=>String(c??'').trim()!==''));
+ const hdr=opts.hasHeader!==false;
+ if(aoa.length<(hdr?2:1))throw new Error(hdr?'No data rows found. The first row must hold column names, followed by at least one data row.':'No rows found in this file.');
+ if(!hdr){const wd=Math.max(...aoa.map(r=>r.length));return{headers:Array.from({length:wd},(_,i)=>`Column ${i+1}`),rows:aoa}}
+ const headers=aoa[0].map((c,i)=>String(c??'').trim()||`Column ${i+1}`);
+ return{headers,rows:aoa.slice(1)}}
+function guessCols(hd){const L=hd.map(s=>s.toLowerCase()),used=new Set();
+ const f=(re,not)=>{const i=L.findIndex((s,k)=>!used.has(k)&&re.test(s)&&!(not&&not.test(s)));if(i>=0)used.add(i);return i};
+ const ref=f(/ref/),bleu=f(/bleu/,/bert/),chrf=f(/chrf/),mt=f(/^(mt|hyp|hypothesis|candidate|output|translation|system|mt_output)$|hypothesis|translation/,/ref/),
+  met=f(/meteor/),pos=f(/^pos(_sim\w*)?$|pos_sim/,/error/),dep=f(/^dep(endency)?(_sim\w*|_score)?$|dependency_(sim|score)/,/error/),bert=f(/bert/),comet=f(/comet/),
+  src=f(/^(src|source|source_text|original|input)$/),h=f(/(human|mqm|(^|_)da(_|$)|rating|^score$)/);
+ return{src,ref,mt,h,bleu,chrf,met,pos,dep,bert,comet}}
+async function onFile(e){
+ const f=e.target.files[0];if(!f)return;
+ $('#fstat').textContent='Reading '+f.name+'…';$('#map').classList.add('hide');UP.res=null;$('#updl').disabled=true;await tick();
+ try{const d=await readDataset(f);UP.rows=d.rows;UP.headers=d.headers;
+  const gc=guessCols(d.headers),opt=(none)=>`<option value="-1">${none}</option>`+d.headers.map((x,i)=>`<option value="${i}">${esc(x)}</option>`).join('');
+  $('#c_src').innerHTML=opt('(none)');$('#c_h').innerHTML=opt('(none)');
+  $('#c_ref').innerHTML=opt('(choose)');$('#c_mt').innerHTML=opt('(choose)');
+  ['bleu','chrf','met','pos','dep','bert'].forEach(k=>$('#p_'+k).innerHTML=opt('(compute in browser)'));$('#p_comet').innerHTML=opt('(compute in browser)');
+  $('#c_src').value=gc.src;$('#c_h').value=gc.h;$('#c_ref').value=gc.ref>=0?gc.ref:0;$('#c_mt').value=gc.mt>=0?gc.mt:Math.min(1,d.headers.length-1);
+  ['bleu','chrf','met','pos','dep','bert','comet'].forEach(k=>$('#p_'+k).value=gc[k]);
+  $('#fstat').textContent=`${f.name}: ${d.rows.length.toLocaleString()} rows, ${d.headers.length} columns. Check the column choices below, then score.`;
+  $('#map').classList.remove('hide');$('#pre').classList.remove('hide');$('#upavg').classList.add('hide');$('#upsum').textContent='';$('#upcor').innerHTML='';$('#uptbl').innerHTML='';$('#upbar').style.width='0'
+ }catch(err){$('#fstat').textContent='Could not read this file: '+err.message}}
+async function scoreUpload(){
+ const ci={src:+$('#c_src').value,ref:+$('#c_ref').value,mt:+$('#c_mt').value,h:+$('#c_h').value},
+  pc={bleu:+$('#p_bleu').value,chrf:+$('#p_chrf').value,met:+$('#p_met').value,pos:+$('#p_pos').value,dep:+$('#p_dep').value,bert:+$('#p_bert').value,comet:+$('#p_comet').value};
+ if(ci.ref<0||ci.mt<0){$('#upsum').textContent='Choose a reference column and a translation column.';return}
+ if(ci.ref===ci.mt){$('#upsum').textContent='Choose different columns for reference and translation.';return}
+ $('#upgo').disabled=true;$('#updl').disabled=true;$('#upavg').classList.add('hide');
+ const w=weights(),n=UP.rows.length,res=new Array(n).fill(null),comps=new Array(n).fill(null);let done=0,skipped=0;
+ while(done<n){const end=Math.min(done+250,n);
+  for(;done<end;done++){const r=UP.rows[done],ref=String(r[ci.ref]??'').trim(),mt=String(r[ci.mt]??'').trim();
+   if(!ref||!mt){skipped++;continue}
+   const have={};for(const k in pc)if(pc[k]>=0)have[k]=numVal(r[pc[k]]);
+   const c=components(mt,ref,detectKey(ref),have),f=fuse(c,w);comps[done]=c;res[done]=[f.L,f.S,f.E,f.mul]}
+  $('#upbar').style.width=(done/n*100)+'%';$('#upsum').textContent=`Scoring… ${done.toLocaleString()} of ${n.toLocaleString()}`;await tick()}
+ UP.res=res;UP.comps=comps;UP.ci=ci;
+ const ok=[];res.forEach((r,i)=>{if(r&&Number.isFinite(r[3]))ok.push(i)});
+ const m=k=>{const v=ok.map(i=>res[i][k]).filter(Number.isFinite);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(3):'n/a'};
+ $('#upsum').innerHTML=`Scored <b>${ok.length.toLocaleString()}</b> of ${n.toLocaleString()} rows${skipped?` (${skipped.toLocaleString()} skipped: empty reference or translation)`:''}. Average LEX ${m(0)} · SYN ${m(1)} · SEM ${m(2)}.`;
+ $('#upavg').classList.toggle('hide',!ok.length);$('#upavgv').textContent=m(3);$('#upavgn').textContent=`Mean of the per-sentence Mulya scores over ${ok.length.toLocaleString()} scored sentences.`;
+ if(ci.h>=0){const x=[],H=[];ok.forEach(i=>{const hv=humNum(UP.rows[i][ci.h]);if(!isNaN(hv)){x.push(res[i][3]);H.push(hv)}});$('#upcor').innerHTML=corrHTML(x,H)}else $('#upcor').innerHTML='';
+ $('#uptbl').innerHTML='<tr><th>#</th>'+(ci.src>=0?'<th>Source</th>':'')+'<th>Reference</th><th>Translation</th>'+(ci.h>=0?'<th>Human</th>':'')+'<th>LEX</th><th>SYN</th><th>SEM</th><th>Mulya</th></tr>'+
+  ok.slice(0,20).map(i=>{const r=UP.rows[i],s=res[i];return `<tr><td>${i+1}</td>${ci.src>=0?`<td>${esc(r[ci.src])}</td>`:''}<td>${esc(r[ci.ref])}</td><td>${esc(r[ci.mt])}</td>${ci.h>=0?`<td class="num">${esc(r[ci.h])}</td>`:''}<td class="num">${fx(s[0])}</td><td class="num">${fx(s[1])}</td><td class="num">${fx(s[2])}</td><td class="num"><b>${fx(s[3])}</b></td></tr>`}).join('')+
+  (ok.length>20?`<tr><td colspan="9" class="note">Showing the first 20 scored rows. Download the CSV for all ${ok.length.toLocaleString()}.</td></tr>`:'');
+ $('#upgo').disabled=false;$('#updl').disabled=!ok.length}
+function downloadUpload(){if(!UP.res)return;const ci=UP.ci,out=[CSVH];
+ UP.res.forEach((s,i)=>{if(!s)return;const r=UP.rows[i],c=UP.comps[i];out.push([ci.src>=0?q(r[ci.src]):'""',q(r[ci.ref]),q(r[ci.mt]),ci.h>=0?q(r[ci.h]):'',...s.map(f4),f4(c.bleu),f4(c.chrf),f4(c.met),f4(c.pos),f4(c.dep),f4(c.bert),f4(c.comet)].join(','))});
+ saveCsv('mulya_dataset_results.csv',out.join('\n'))}
+
+/* ---------- separate files: source / reference / translation / human scores ---------- */
+const MF={src:null,ref:null,mt:null,h:null};
+const MFRE={src:/^(src|source|source_text|original|input)/i,ref:/ref/i,mt:/(^mt$|hyp|translation|candidate|output|system|pred)/i,h:/(human|mqm|(^|_)da(_|$)|rating|score)/i};
+const MFNAME={src:'source',ref:'reference',mt:'translation',h:'human score'};
+function fillMapping(d,forced){
+ UP.rows=d.rows;UP.headers=d.headers;UP.res=null;$('#updl').disabled=true;
+ const opt=none=>`<option value="-1">${none}</option>`+d.headers.map((x,i)=>`<option value="${i}">${esc(x)}</option>`).join('');
+ $('#c_src').innerHTML=opt('(none)');$('#c_h').innerHTML=opt('(none)');$('#c_ref').innerHTML=opt('(choose)');$('#c_mt').innerHTML=opt('(choose)');
+ ['bleu','chrf','met','pos','dep','bert','comet'].forEach(k=>{$('#p_'+k).innerHTML=opt('(compute in browser)');$('#p_'+k).value=-1});
+ $('#c_src').value=forced.src;$('#c_ref').value=forced.ref;$('#c_mt').value=forced.mt;$('#c_h').value=forced.h;
+ $('#pre').classList.add('hide');$('#map').classList.remove('hide');$('#upavg').classList.add('hide');
+ $('#upsum').textContent='';$('#upcor').innerHTML='';$('#uptbl').innerHTML='';$('#upbar').style.width='0'}
+async function loadMF(role){
+ const el=$('#mf_'+role),f=el.files&&el.files[0],st=$('#mfs_'+role),sel=$('#mfc_'+role);
+ if(!f){MF[role]=null;st.textContent='';sel.classList.add('hide');combineMF();return}
+ st.textContent=' Reading…';await tick();
+ try{const d=await readDataset(f,{hasHeader:$('#mf_hdr').checked,keepEmpty:true,txtLines:true});
+  let g=d.headers.findIndex(x=>MFRE[role].test(x));if(g<0)g=0;
+  MF[role]={name:f.name,headers:d.headers,rows:d.rows};
+  sel.innerHTML=d.headers.map((x,i)=>`<option value="${i}">${esc(x)}</option>`).join('');sel.value=g;
+  sel.classList.toggle('hide',d.headers.length<2);
+  st.textContent=` ${d.rows.length.toLocaleString()} rows, ${d.headers.length} column${d.headers.length>1?'s':''}`}
+ catch(err){MF[role]=null;sel.classList.add('hide');st.textContent=' Could not read this file: '+err.message}
+ combineMF()}
+function combineMF(){
+ const stat=$('#mf_stat');
+ if(!MF.ref||!MF.mt){stat.textContent=(MF.src||MF.ref||MF.mt||MF.h)?'Add both a reference file and a translation file to continue.':'';return}
+ const roles=['src','ref','mt','h'].filter(r=>MF[r]),lens=roles.map(r=>MF[r].rows.length),n=Math.min(...lens);
+ const cell=(r,i)=>{if(!MF[r])return '';const v=MF[r].rows[i][+$('#mfc_'+r).value];return v==null?'':v};
+ const rows=[];for(let i=0;i<n;i++)rows.push([cell('src',i),cell('ref',i),cell('mt',i),cell('h',i)]);
+ fillMapping({headers:['Source','Reference','Translation','Human score'],rows},{src:MF.src?0:-1,ref:1,mt:2,h:MF.h?3:-1});
+ let msg=`Combined ${n.toLocaleString()} rows by position from ${roles.map(r=>MFNAME[r]+' ('+MF[r].name+')').join(', ')}. Check the column choices below, then score.`;
+ if(new Set(lens).size>1)msg=`Row counts differ: ${roles.map(r=>MFNAME[r]+' '+MF[r].rows.length.toLocaleString()).join(', ')}. Using the first ${n.toLocaleString()} rows of each file. Rows are matched by position, so check that the files are in the same order. `+msg;
+ stat.textContent=msg;$('#fstat').textContent=''}
+['src','ref','mt','h'].forEach(r=>{$('#mf_'+r).onchange=()=>loadMF(r);$('#mfc_'+r).onchange=combineMF});
+$('#mf_hdr').onchange=()=>{['src','ref','mt','h'].forEach(r=>{if($('#mf_'+r).files&&$('#mf_'+r).files[0])loadMF(r)})};
+
+/* ---------- wiring ---------- */
+$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ ['eval','batch'].forEach(t=>$('#p-'+t).classList.toggle('hide',t!==b.dataset.t))});
+$('#reset').onclick=resetDefaults;
+$('#dir').onchange=()=>applyDirection(true);
+document.addEventListener('input',e=>{if(e.target.closest('#p-eval')&&!e.target.closest('#upcard'))update()});
+$('#run').onclick=runBatch;$('#dl').onclick=downloadBatch;
+$('#file').onchange=onFile;$('#upgo').onclick=scoreUpload;$('#updl').onclick=downloadUpload;
+$('#addrow').onclick=()=>{brows.push(newRow());renderBatch();const t=$('#btbl').querySelectorAll('tr');t[t.length-1].querySelector('textarea').focus()};
+$('#fill').onclick=()=>{brows=sampleRows();renderBatch()};
+$('#clear').onclick=()=>{brows=[newRow(),newRow(),newRow(),newRow(),newRow()];renderBatch()};
+$('#btbl').addEventListener('input',e=>{const el=e.target,tr=el.closest('tr');if(!tr||!el.dataset.f)return;const i=+tr.dataset.i,r=brows[i];
+ r[el.dataset.f==='src'?'src':el.dataset.f==='ref'?'ref':el.dataset.f==='mt'?'mt':'h']=el.value;
+ if(el.dataset.f==='h')el.classList.toggle('bad',badH(el.value));
+ if(r.res){r.res=null;r.c=null;[0,1,2,3].forEach(k=>{const c=document.getElementById(`r${i}_${k}`);if(c)c.textContent='—'})}});
+$('#btbl').addEventListener('click',e=>{const d=e.target.closest('[data-del]');if(!d)return;brows.splice(+d.dataset.del,1);if(!brows.length)brows=[newRow()];renderBatch()});
+brows=[newRow(),newRow(),newRow(),newRow(),newRow()];renderBatch();
+resetDefaults();applyDirection(true);
+</script>
+</body>
+</html>
