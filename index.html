@@ -122,12 +122,11 @@ details{margin-top:10px}summary{cursor:pointer;font-size:14px}
 </div>
 <div class="card" id="upcard">
  <h2>Upload a dataset</h2>
- <p class="note">Score a whole file at once. Accepted formats: .csv, .tsv, .txt, .xlsx, .xls, .xlsm, .xlsb, .ods, .json, .jsonl. The first row must hold column names. Large files are scored in chunks so the page stays responsive. Everything runs in your browser and the file is not uploaded anywhere.</p>
+ <p class="note">Score a whole file at once. Accepted formats: .csv, .tsv, .txt, .xlsx, .xls, .xlsm, .xlsb, .ods, .json, .jsonl.</p>
  <p class="note" style="margin-bottom:4px"><b>Option 1:</b> upload one combined file (source, reference, translation and optional human scores as columns)</p>
  <input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl" aria-label="Dataset file">
  <details id="multi" open>
   <summary><b>Option 2:</b> upload separate files: source, reference, translation and human scores each in its own file</summary>
-  <p class="note">Rows are matched by position. Row 1 of the source file goes with row 1 of the reference file and row 1 of the translation file, so keep all files in the same order. Accepted formats are the same as above, and a .txt file is read as one sentence per line. Reference and translation files are required. The source and human score files are optional.</p>
   <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="mf_hdr" checked> The first row of each file holds a column name</label>
   <div class="mfrow"><label for="mf_src">Source file (optional)</label><input type="file" id="mf_src" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_src" class="hide" aria-label="Source column"></select><span class="note" id="mfs_src"></span></div>
   <div class="mfrow"><label for="mf_ref">Reference file</label><input type="file" id="mf_ref" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.json,.jsonl"><select id="mfc_ref" class="hide" aria-label="Reference column"></select><span class="note" id="mfs_ref"></span></div>
